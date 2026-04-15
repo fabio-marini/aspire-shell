@@ -25,12 +25,25 @@ az keyvault secret set `
     --name WebApp1--AppKey `
     --value MyAppKey1 `
     --output none
+
+az keyvault secret set `
+    --vault-name <keyvault> `
+    --name WebApp2--AppKey `
+    --value MyAppKey2 `
+    --output none
 ```
 ```
 az appconfig kv set `
     --name <appconfig> `
     --key WebApp1:AppName `
     --value MyWebApp1 `
+    --yes `
+    --output none
+
+az appconfig kv set `
+    --name <appconfig> `
+    --key WebApp2:AppName `
+    --value MyWebApp2 `
     --yes `
     --output none
 ```
@@ -49,7 +62,14 @@ In this mode no resources are provisioned and all apps and services run locally:
 - app settings are stored in the project's `appsettings.Development.json`
 - a RabbitMQ container, which includes the management portal, is used for messaging between the apps
 
-Since no resources need to be provisioned, there are no pre-requisites to use local development:
+Create the secrets using the following `dotnet` commands:
+```
+dotnet user-secrets -p .\src\AzdAspire.WebApplication1\AzdAspire.WebApplication1.csproj set "WebApp1:AppKey" "MyAppKey1"
+
+dotnet user-secrets -p .\src\AzdAspire.WebApplication2\AzdAspire.WebApplication2.csproj set "WebApp2:AppKey" "MyAppKey2"
+```
+
+Since no resources need to be provisioned, there are no other pre-requisites to use local development:
 - to run the application in Visual Studio, select the **Development** profile and hit F5
 - in VS Code, use: `dotnet run --project .\src\AzdAspire.AppHost\AzdAspire.AppHost.csproj --launch-profile Development`
 

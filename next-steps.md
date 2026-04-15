@@ -9,8 +9,6 @@
 
 ## Next Steps
 
-**TODO**: deploy with azd + remove rmq and update readme + add tests project + add 3 x pipelines (ci, cd and lz)
-
 ### Provision infrastructure and deploy application code
 
 Run `azd up` to provision your infrastructure and deploy to Azure in one step (or run `azd provision` then `azd deploy` to accomplish the tasks separately). Visit the service endpoints listed to see your application up-and-running!

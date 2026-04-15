@@ -1,5 +1,6 @@
 {
-  "id": "aspire-shell",
+  "id": "aspire",
   "name": "Aspire Shell",
-  "desc": "Aspire and 2 x Sample Web Apis"
+  "desc": "Aspire hosting and 2 x sample web APIs",
+  "repo": "fabio-marini/aspire-shell"
 }
