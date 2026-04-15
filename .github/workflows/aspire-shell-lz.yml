@@ -1,3 +1,5 @@
+name: LZ Pipeline (Provision landing zone)
+
 on:
   workflow_dispatch:
 

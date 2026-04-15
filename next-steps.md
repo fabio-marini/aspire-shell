@@ -9,6 +9,13 @@
 
 ## Next Steps
 
+**TODO**: fix and document deployment pipelines (see copilot instructions) + review env variables
+          + create GH env from .env?
+
+**TODO**: LZ pipeline should create the GH env and set the variables required for deployment, e.g. ACR endpoint
+          + is LS pipeline idempotent?
+          + need a param for PRINCIPAL_TYPE which is 'User' for local dev and 'ServicePrincipal' for GH actions
+
 ### Provision infrastructure and deploy application code
 
 Run `azd up` to provision your infrastructure and deploy to Azure in one step (or run `azd provision` then `azd deploy` to accomplish the tasks separately). Visit the service endpoints listed to see your application up-and-running!

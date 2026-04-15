@@ -12,8 +12,11 @@ param hybridEnvironment bool = false
 @description('The location used for all deployed resources')
 param location string
 
-@description('Id of the user or app to assign application roles')
+@description('Id of the principal to assign application roles')
 param principalId string = ''
+
+@description('Type of the principal to assign application roles')
+param principalType string = 'User'
 
 var tags = {
   'azd-env-name': environmentName
@@ -40,10 +43,10 @@ module user_roles 'app-roles.bicep' = if (principalId != '') {
   params: {
     resourceGroupName: rg.name
     principalId: principalId
+    principalType: principalType
     appConfigName: services.outputs.APP_CONFIG_APPCONFIGNAME
     appSecretsName: services.outputs.APP_SECRETS_VAULTNAME
     messageBusName: services.outputs.MESSAGE_BUS_SERVICEBUSNAME
-    principalType: 'User'
   }
 }
 
@@ -63,10 +66,10 @@ module mi_roles 'app-roles.bicep' = if (!hybridEnvironment) {
   params: {
     resourceGroupName: rg.name
     principalId: resources.outputs.MANAGED_IDENTITY_PRINCIPAL_ID
+    principalType: 'ServicePrincipal'
     appConfigName: services.outputs.APP_CONFIG_APPCONFIGNAME
     appSecretsName: services.outputs.APP_SECRETS_VAULTNAME
     messageBusName: services.outputs.MESSAGE_BUS_SERVICEBUSNAME
-    principalType: 'ServicePrincipal'
   }
 }
 
