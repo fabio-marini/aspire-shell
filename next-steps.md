@@ -10,11 +10,14 @@
 ## Next Steps
 
 **TODO**: fix and document deployment pipelines (see copilot instructions) + review env variables
-          + create GH env from .env?
+**TODO**: add param to use central ACR + 
+**TODO**: split into main-hybrid and main-remote templates + main calls one or the other
+        + add param validation (no default for principalId in hybrid)
+        + also solve the issue of blank output variables (each template has the correct ones)
 
 **TODO**: LZ pipeline should create the GH env and set the variables required for deployment, e.g. ACR endpoint
-          + is LS pipeline idempotent?
-          + need a param for PRINCIPAL_TYPE which is 'User' for local dev and 'ServicePrincipal' for GH actions
+
+**TODO**: test LZ pipeline with principal type user (2 x app roles) and SP (1 x app roles) + test env and variables are created
 
 ### Provision infrastructure and deploy application code
 

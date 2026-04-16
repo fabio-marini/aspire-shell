@@ -3,7 +3,7 @@ param principalId string
 
 @description('The type of principal to assign application roles')
 @allowed(['ServicePrincipal', 'User'])
-param principalType  string
+param principalType string
 
 param resourceGroupName string
 

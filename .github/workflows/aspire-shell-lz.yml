@@ -8,14 +8,17 @@ on:
 permissions:
   id-token: write
   contents: read
+  deployments: write
 
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      # required for auth
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      # required to provision
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
@@ -43,4 +46,61 @@ jobs:
         shell: pwsh
 
       - name: Provision Infrastructure
-        run: azd provision --no-prompt        
+        run: azd provision --no-prompt
+
+      - name: Create GitHub Environment
+        run: |
+          $envName = $Env:AZURE_ENV_NAME
+          $repoOwner = "${{ github.repository }}".Split('/')[0]
+          $repoName = "${{ github.repository }}".Split('/')[1]
+          
+          $envExists = gh api repos/$repoOwner/$repoName/environments/$envName 2>$null
+          if (-not $envExists) {
+            gh api repos/$repoOwner/$repoName/environments -f name=$envName
+            Write-Host "Created GitHub environment: $envName"
+          } else {
+            Write-Host "GitHub environment already exists: $envName"
+          }
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy azd variables to GitHub Environment
+        run: |
+          $envName = $Env:AZURE_ENV_NAME
+          $repoOwner = "${{ github.repository }}".Split('/')[0]
+          $repoName = "${{ github.repository }}".Split('/')[1]
+          $envFilePath = ".azure/$envName/.env"
+          
+          if (-not (Test-Path $envFilePath)) {
+            Write-Host "Warning: .env file not found at $envFilePath"
+            exit 0
+          }
+          
+          $envContent = Get-Content $envFilePath -Raw
+          $lines = $envContent -split [System.Environment]::NewLine | Where-Object { $_ -match '^\s*[^#\s]' }
+          
+          foreach ($line in $lines) {
+            $line = $line.Trim()
+            if ([string]::IsNullOrEmpty($line) -or $line.StartsWith("#")) {
+              continue
+            }
+            
+            $parts = $line -split '=', 2
+            if ($parts.Count -eq 2) {
+              $key = $parts[0].Trim()
+              $value = $parts[1].Trim().Trim('"', "'")
+              
+              gh api repos/$repoOwner/$repoName/environments/$envName/variables `
+                -f name=$key `
+                -f value="$value" `
+                --method PUT | Out-Null
+              
+              Write-Host "✓ Set variable: $key"
+            }
+          }
+          
+          Write-Host "All azd variables copied to GitHub environment: $envName"
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

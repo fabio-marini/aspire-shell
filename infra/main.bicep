@@ -15,9 +15,6 @@ param location string
 @description('Id of the principal to assign application roles')
 param principalId string = ''
 
-@description('Type of the principal to assign application roles')
-param principalType string = 'User'
-
 var tags = {
   'azd-env-name': environmentName
 }
@@ -37,13 +34,13 @@ module services 'services.bicep' = {
   }
 }
 
-module user_roles 'app-roles.bicep' = if (principalId != '') {
+module user_roles 'app-roles.bicep' = if (hybridEnvironment) {
   scope: rg
   name: 'user-roles'
   params: {
     resourceGroupName: rg.name
     principalId: principalId
-    principalType: principalType
+    principalType: 'User'
     appConfigName: services.outputs.APP_CONFIG_APPCONFIGNAME
     appSecretsName: services.outputs.APP_SECRETS_VAULTNAME
     messageBusName: services.outputs.MESSAGE_BUS_SERVICEBUSNAME
