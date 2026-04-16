@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ vars.AZURE_ENV_NAME }}
     env:
-      APP_CONFIG_APPCONFIGENDPOINT: ${{vars.APP_CONFIG_APPCONFIGENDPOINT}}
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -48,6 +47,10 @@ jobs:
             --federated-credential-provider "github" `
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
+
+      - name: Set environment variables
+        run: |
+          azd env set APP_CONFIG_APPCONFIGENDPOINT ${{ vars.APP_CONFIG_APPCONFIGENDPOINT }}
 
       - name: Deploy Application
         run: azd deploy --no-prompt
