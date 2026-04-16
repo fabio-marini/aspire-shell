@@ -15,19 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ vars.AZURE_ENV_NAME }}
     env:
-      APP_CONFIG_APPCONFIGENDPOINT: ${{vars.APP_CONFIG_APPCONFIGENDPOINT}}
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-      AZURE_CONTAINER_REGISTRY_ENDPOINT: ${{vars.AZURE_CONTAINER_REGISTRY_ENDPOINT}}
-      AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID: ${{vars.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID}}
-      AZURE_CONTAINER_APPS_ENVIRONMENT_ID: ${{vars.AZURE_CONTAINER_APPS_ENVIRONMENT_ID}}
-      ASB_MESSAGING_SERVICEBUSENDPOINT: ${{vars.ASB_MESSAGING_SERVICEBUSENDPOINT}}
-      AZURE_LOG_ANALYTICS_WORKSPACE_NAME: ${{vars.AZURE_LOG_ANALYTICS_WORKSPACE_NAME}}
-      APP_SECRETS_VAULTURI: ${{secrets.APP_SECRETS_VAULTURI}}
-      MANAGED_IDENTITY_CLIENT_ID: ${{vars.MANAGED_IDENTITY_CLIENT_ID}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,8 +41,11 @@ jobs:
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
 
-      - name: Deploy Application
+      - name: Provision Application
         run: azd provision --no-prompt
+
+      - name: Dump Environment
+        run: azd env get-values --no-prompt
 
       - name: Deploy Application
         run: azd deploy --no-prompt
