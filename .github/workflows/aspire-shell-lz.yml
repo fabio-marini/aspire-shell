@@ -54,12 +54,12 @@ jobs:
           $repoOwner = "${{ github.repository }}".Split('/')[0]
           $repoName = "${{ github.repository }}".Split('/')[1]
           
-          $envExists = gh api repos/$repoOwner/$repoName/environments/$envName 2>$null
-          if (-not $envExists.id) {
-            gh api repos/$repoOwner/$repoName/environments -f name=$envName
-            Write-Host "Created GitHub environment: $envName"
-          } else {
+          gh api repos/$repoOwner/$repoName/environments/$envName 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
             Write-Host "GitHub environment already exists: $envName"
+          } else {
+            gh api repos/$repoOwner/$repoName/environments/$envName --method PUT
+            Write-Host "Created GitHub environment: $envName"
           }
         shell: pwsh
         env:
@@ -104,3 +104,4 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
