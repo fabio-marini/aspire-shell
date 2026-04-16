@@ -81,13 +81,13 @@ jobs:
               if ($LASTEXITCODE -eq 0) {
 
                 # Variable exists, use PATCH to update
-                gh api repos/$repoOwner/$repoName/environments/$envName/variables/$key -f value="$value" --method PATCH | Out-Null
+                gh api repos/$repoOwner/$repoName/environments/$envName/variables/$key -f 'value=$value' --method PATCH | Out-Null
                 
                 Write-Host "✓ Updated variable: $key"
               } else {
                 
                 # Variable doesn't exist, use POST to create
-                gh api repos/$repoOwner/$repoName/environments/$envName/variables -f 'name=$key' -f 'value=$value --method POST | Out-Null
+                gh api repos/$repoOwner/$repoName/environments/$envName/variables -f 'name=$key' -f 'value=$value' --method POST | Out-Null
                 
                 Write-Host "✓ Set variable: $key"
             }
