@@ -20,6 +20,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_CONTAINER_REGISTRY_ENDPOINT: ${{vars.AZURE_CONTAINER_REGISTRY_ENDPOINT}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
