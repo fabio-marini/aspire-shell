@@ -2,6 +2,11 @@ name: CD Pipeline (Provision and Deploy)
 
 on:
   workflow_dispatch:
+    inputs:
+      azure-env-name:
+        description: 'The name of the azd environment (AZURE_ENV_NAME)'
+        required: true
+        type: string
 
 # Set up permissions for deploying with secretless Azure federated credentials
 # https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
@@ -13,12 +18,12 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: ${{ vars.AZURE_ENV_NAME }}
+    environment: ${{ inputs.azure-env-name }}
     env:
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_ENV_NAME: ${{ inputs.azure-env-name }}
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
     steps:
       - name: Checkout
