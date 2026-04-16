@@ -9,15 +9,16 @@
 
 ## Next Steps
 
+**TODO**: refactor CD pipeline to use environment imported from .env
 **TODO**: fix and document deployment pipelines (see copilot instructions) + review env variables
+**TODO**: document LZ process - provision locally and export .env to GH for CD pipeline to use
+**TODO**: drop LZ pipeline, provision and deploy from CD pipeline 
+        + test deleting RG and redeploying (but now have all the variables)?
+**TODO**: refactor script for advanced functions?
 **TODO**: add param to use central ACR + 
 **TODO**: split into main-hybrid and main-remote templates + main calls one or the other
         + add param validation (no default for principalId in hybrid)
         + also solve the issue of blank output variables (each template has the correct ones)
-
-**TODO**: LZ pipeline should create the GH env and set the variables required for deployment, e.g. ACR endpoint
-
-**TODO**: test LZ pipeline with principal type user (2 x app roles) and SP (1 x app roles) + test env and variables are created
 
 ### Provision infrastructure and deploy application code
 

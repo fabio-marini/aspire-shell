@@ -48,13 +48,3 @@ jobs:
       - name: Provision Infrastructure
         run: azd provision --no-prompt
 
-      - name: Copy azd variables to GitHub Environment
-        run: |
-          $envName = $Env:AZURE_ENV_NAME
-          $envFilePath = ".azure/$envName/.env"
-
-          Get-Content $envFilePath
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
