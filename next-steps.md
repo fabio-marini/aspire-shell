@@ -11,12 +11,6 @@
 
 **TODO**: update copilot instructions after all changes are implemented
 **FIXME**: need to setup federated credentials for all environments - document
-
-**TODO**: refactor CD pipeline to use environment imported from .env
-**TODO**: document LZ process - provision locally and export .env to GH (using .ps1 script) for CD pipeline to use
-**TODO**: TBC - separation of concerns is good... drop LZ pipeline, provision and deploy from CD pipeline 
-        + test deleting RG and redeploying (but now have all the variables) - key vault is soft-deleted, purge first!
-**TODO**: refactor script for advanced functions?
 **TODO**: add param to use central ACR + 
 
 **TODO**: split into main-hybrid and main-remote templates + main calls one or the other

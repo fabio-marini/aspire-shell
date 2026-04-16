@@ -1,4 +1,4 @@
-name: CD Pipeline (Deploy)
+name: CD Pipeline (Provision and Deploy)
 
 on:
   workflow_dispatch:
@@ -43,9 +43,6 @@ jobs:
 
       - name: Provision Application
         run: azd provision --no-prompt
-
-      - name: Dump Environment
-        run: azd env get-values --no-prompt
 
       - name: Deploy Application
         run: azd deploy --no-prompt
