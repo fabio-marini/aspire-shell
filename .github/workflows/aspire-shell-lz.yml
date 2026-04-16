@@ -55,7 +55,7 @@ jobs:
           $repoName = "${{ github.repository }}".Split('/')[1]
           
           $envExists = gh api repos/$repoOwner/$repoName/environments/$envName 2>$null
-          if (-not $envExists) {
+          if (-not $envExists.id) {
             gh api repos/$repoOwner/$repoName/environments -f name=$envName
             Write-Host "Created GitHub environment: $envName"
           } else {
