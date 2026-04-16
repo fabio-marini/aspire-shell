@@ -39,8 +39,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: | 
-            8.x
-            9.x
             10.x
 
       - name: Log in with Azure (Federated Credentials)
@@ -50,9 +48,6 @@ jobs:
             --federated-credential-provider "github" `
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
-
-      - name: Dump environment variables (for debugging)
-        run: azd version
 
       - name: Deploy Application
         run: azd deploy --no-prompt
