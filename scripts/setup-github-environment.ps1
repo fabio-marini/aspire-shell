@@ -51,7 +51,9 @@ Write-Host "GitHub repository name: $Owner/$Repo`n" -ForegroundColor Green
 
 # Create environment (idempotent)
 Write-Host "Creating GitHub environment '$environmentName'..." -ForegroundColor Yellow
+
 gh api repos/$Owner/$Repo/environments/$environmentName --method PUT 2>$null
+
 if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 422) {  # 422 = already exists
     Write-Host "✓ Environment ready`n" -ForegroundColor Green
 } else {

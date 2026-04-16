@@ -101,8 +101,6 @@ These must be set as **repository variables** (not secrets) before either workfl
 
 Authentication uses **OIDC federated credentials** (no client secret stored). The app registration needs a federated credential for the GitHub repo. Run `azd pipeline config -e <env>` to set this up automatically.
 
-The CI workflow also requires a `CODECOV_TOKEN` **secret** for coverage uploads (upload failures are non-blocking — `fail_ci_if_error: false`).
-
 ## RBAC Role Assignments
 
 `infra/app-roles.bicep` is called **twice** by `main.bicep`:
