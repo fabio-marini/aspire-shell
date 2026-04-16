@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ vars.AZURE_ENV_NAME }}
     env:
+      APP_CONFIG_APPCONFIGENDPOINT: ${{vars.APP_CONFIG_APPCONFIGENDPOINT}}
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -27,7 +28,6 @@ jobs:
       AZURE_LOG_ANALYTICS_WORKSPACE_NAME: ${{vars.AZURE_LOG_ANALYTICS_WORKSPACE_NAME}}
       APP_SECRETS_VAULTURI: ${{secrets.APP_SECRETS_VAULTURI}}
       MANAGED_IDENTITY_CLIENT_ID: ${{vars.MANAGED_IDENTITY_CLIENT_ID}}
-      APP_CONFIG_APPCONFIGENDPOINT: ${{vars.APP_CONFIG_APPCONFIGENDPOINT}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
         shell: pwsh
 
       - name: Dump environment variables (for debugging)
-        run: printenv | sort
+        run: azd version
 
       - name: Deploy Application
         run: azd deploy --no-prompt

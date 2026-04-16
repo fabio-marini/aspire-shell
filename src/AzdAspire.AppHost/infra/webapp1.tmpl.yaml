@@ -22,11 +22,11 @@ properties:
         identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
     secrets:
       - name: connectionstrings--app-config
-        value: {{ .Env.APP_CONFIG_APPCONFIGENDPOINT }}
+        value: '{{ .Env.APP_CONFIG_APPCONFIGENDPOINT }}'
       - name: connectionstrings--app-secrets
-        value: {{ .Env.APP_SECRETS_VAULTURI }}
+        value: '{{ .Env.APP_SECRETS_VAULTURI }}'
       - name: connectionstrings--asb-messaging
-        value: {{ .Env.ASB_MESSAGING_SERVICEBUSENDPOINT }}
+        value: '{{ .Env.ASB_MESSAGING_SERVICEBUSENDPOINT }}'
   template:
     containers:
       - image: {{ .Image }}
