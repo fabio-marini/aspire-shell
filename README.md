@@ -14,45 +14,11 @@ The template supports both **local** and **hybrid** development mode (see below 
 
 To enable this, messaging between apps is abstracted using [Rebus](https://github.com/rebus-org/Rebus) 🚌.
 
-To prove connectivity to Azure Key Vault, the `WebApp1:AppKey` and `WebApp2:AppKey` secrets are used.
-
-Similarly, for Azure App Configuration, the `WebApp1:AppName` and `WebApp2:AppName` settings are used.
-
-You can create these using the portal or the following `az` commands:
-```
-az keyvault secret set `
-    --vault-name <keyvault> `
-    --name WebApp1--AppKey `
-    --value MyAppKey1 `
-    --output none
-
-az keyvault secret set `
-    --vault-name <keyvault> `
-    --name WebApp2--AppKey `
-    --value MyAppKey2 `
-    --output none
-```
-```
-az appconfig kv set `
-    --name <appconfig> `
-    --key WebApp1:AppName `
-    --value MyWebApp1 `
-    --yes `
-    --output none
-
-az appconfig kv set `
-    --name <appconfig> `
-    --key WebApp2:AppName `
-    --value MyWebApp2 `
-    --yes `
-    --output none
-```
-
 The `bicep` template used to provision the Azure resources takes the following parameters:
-- `environmentName`: corresponds to `AZURE_ENV_NAME` and is set by `azd`
-- `location`: corresponds to `AZURE_LOCATION` and is set by `azd`
-- `hybridEnvironment`: corresponds to `HYBRID_ENVIRONMENT` and must be set manually (can be either `true` or `false`)
-- `principalId`: corresponds to `AZURE_PRINCIPAL_ID` and must be set manually (it's the ID of the developer, i.e. you)
+- `environmentName`: corresponds to `AZURE_ENV_NAME` and is set by `azd` during environment creation
+- `location`: corresponds to `AZURE_LOCATION` and is set by `azd` interactively during provisioning
+- `hybridEnvironment`: corresponds to `HYBRID_ENVIRONMENT` and must be set manually (can be either `true` or `false`, the default)
+- `principalId`: corresponds to `AZURE_PRINCIPAL_ID` and is set by `azd` automatically during provisioning
 
 The principal specified above will be given appropriate permissions to access the provisioned resources, e.g. create secrets in the key vault.
 
@@ -88,6 +54,40 @@ Hybrid development is enabled as follows:
 - to run the application in Visual Studio, select the **Production** profile and hit F5
 - in VS Code, use: `dotnet run --project .\src\AzdAspire.AppHost\AzdAspire.AppHost.csproj --launch-profile Production`
 
+To prove connectivity to Azure Key Vault, the `WebApp1:AppKey` and `WebApp2:AppKey` secrets are used.
+
+Similarly, for Azure App Configuration, the `WebApp1:AppName` and `WebApp2:AppName` settings are used.
+
+You can create these using the portal or the following `az` commands:
+```
+az keyvault secret set `
+    --vault-name <keyvault> `
+    --name WebApp1--AppKey `
+    --value MyAppKey1 `
+    --output none
+
+az keyvault secret set `
+    --vault-name <keyvault> `
+    --name WebApp2--AppKey `
+    --value MyAppKey2 `
+    --output none
+```
+```
+az appconfig kv set `
+    --name <appconfig> `
+    --key WebApp1:AppName `
+    --value MyWebApp1 `
+    --yes `
+    --output none
+
+az appconfig kv set `
+    --name <appconfig> `
+    --key WebApp2:AppName `
+    --value MyWebApp2 `
+    --yes `
+    --output none
+```
+
 ## ☁️ Running in Azure
 In this mode all the required resources are provisioned and all apps and services run in the cloud.
 
@@ -96,6 +96,42 @@ To create a fully provisioned runtime environment, follow these steps:
 2. login to Azure with `azd auth login`
 3. create the service resources by running `azd provision`
 4. deploy the applications by running `azd deploy`
+5. create the necessary secrets and settings as described in the previous section
+
+## ⚙️ GitHub Actions Workflows
+
+Two workflows are provided in `.github/workflows/`:
+
+### CI Pipeline (`aspire-shell-ci.yml`)
+Triggered on **push** or **pull request** to `main` or `develop`.
+
+Steps:
+1. Restore dependencies
+2. Build in `Release` configuration
+3. Run tests with XPlat Code Coverage
+4. Upload test results as a GitHub artifact (retained 7 days)
+5. Generate an HTML + Cobertura coverage report via [ReportGenerator](https://github.com/danielpalme/ReportGenerator)
+6. Upload the coverage report as a GitHub artifact (retained 7 days)
+
+### CD Pipeline (`aspire-shell-cd.yml`)
+Triggered **manually** via `workflow_dispatch`. Requires an `azure-env-name` input at run time.
+
+Steps:
+1. Install `azd`
+2. Authenticate to Azure using **OIDC federated credentials** (no stored client secret)
+3. `azd provision` — create/update all Azure resources
+4. `azd deploy` — build and deploy the application containers
+
+The following **repository variables** must be configured before running the CD pipeline:
+
+| Variable | Description |
+|---|---|
+| `AZURE_CLIENT_ID` | Client ID of the app registration used for OIDC login |
+| `AZURE_TENANT_ID` | Azure AD tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Target subscription ID |
+| `AZURE_LOCATION` | Azure region (e.g. `eastus`) |
+
+> Run `azd pipeline config -e <environment>` to create the app registration and configure federated credentials automatically.
 
 ## 🧪 Testing the Solution
 To test that everything is wired up correctly, use the `POST /echo` endpoint of **WebApp1**, e.g.
@@ -117,3 +153,19 @@ Received AzdAspire.ServiceDefaults.EchoResponse with message: Hello World! :) an
 ```
 
 The messages headers will contain the values of the `AppName` and `AppKey` settings and will confirm the connectivity to Key Vault and App config (for hybrid environments).
+
+## ✏️ Renaming the Projects
+
+A Copilot prompt is provided at `.github/prompts/rename-projects.prompt.md` to help rename all projects in the solution from the default `AzdAspire` prefix to a custom one.
+
+To use it, open the prompt in VS Code (with the GitHub Copilot extension) and supply the `{new-prefix}` value. The prompt instructs Copilot to:
+
+1. Rename all project files and folders under `src/` using `git mv`
+2. Replace all occurrences of `AzdAspire` in:
+   - `.github/copilot-instructions.md`
+   - `.github/workflows/aspire-shell-cd.yml`
+   - `.github/workflows/aspire-shell-ci.yml`
+   - `azure.yaml`
+   - `README.md`
+   - `AGENTS.md`
+3. Run `dotnet build` to verify the solution still compiles

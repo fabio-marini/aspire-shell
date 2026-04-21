@@ -9,13 +9,8 @@
 
 ## Next Steps
 
-**TODO**: update copilot instructions after all changes are implemented
 **FIXME**: need to setup federated credentials for all environments - document
-**TODO**: add param to use central ACR + 
-
-**TODO**: split into main-hybrid and main-remote templates + main calls one or the other
-        + add param validation (no default for principalId in hybrid)
-        + TBC - also solve the issue of blank output variables (each template has the correct ones)?
+**TODO**: document rename prompt
 
 ### Provision infrastructure and deploy application code
 

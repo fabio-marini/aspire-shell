@@ -6,6 +6,7 @@ resource app_secrets 'Microsoft.KeyVault/vaults@2023-07-01' = {
   location: location
   properties: {
     tenantId: tenant().tenantId
+    enableSoftDelete: false
     sku: {
       family: 'A'
       name: 'standard'

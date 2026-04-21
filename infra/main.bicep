@@ -15,71 +15,33 @@ param location string
 @description('Id of the principal to assign application roles')
 param principalId string = ''
 
-var tags = {
-  'azd-env-name': environmentName
-}
-
-resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: 'rg-${environmentName}'
-  location: location
-  tags: tags
-}
-
-module services 'services.bicep' = {
-  scope: rg
-  name: 'services'
+module hybrid 'main-hybrid.bicep' = if (hybridEnvironment) {
+  name: 'hybrid-deployment'
   params: {
+    environmentName: environmentName
     location: location
-    resourceGroupName: rg.name
-  }
-}
-
-module user_roles 'app-roles.bicep' = if (hybridEnvironment) {
-  scope: rg
-  name: 'user-roles'
-  params: {
-    resourceGroupName: rg.name
-    principalId: principalId
-    principalType: 'User'
-    appConfigName: services.outputs.APP_CONFIG_APPCONFIGNAME
-    appSecretsName: services.outputs.APP_SECRETS_VAULTNAME
-    messageBusName: services.outputs.MESSAGE_BUS_SERVICEBUSNAME
-  }
-}
-
-module resources 'resources.bicep' = if (!hybridEnvironment) {
-  scope: rg
-  name: 'resources'
-  params: {
-    location: location
-    tags: tags
     principalId: principalId
   }
 }
 
-module mi_roles 'app-roles.bicep' = if (!hybridEnvironment) {
-  scope: rg
-  name: 'mi-roles'
+module remote 'main-remote.bicep' = if (!hybridEnvironment) {
+  name: 'remote-deployment'
   params: {
-    resourceGroupName: rg.name
-    principalId: resources.outputs.MANAGED_IDENTITY_PRINCIPAL_ID
-    principalType: 'ServicePrincipal'
-    appConfigName: services.outputs.APP_CONFIG_APPCONFIGNAME
-    appSecretsName: services.outputs.APP_SECRETS_VAULTNAME
-    messageBusName: services.outputs.MESSAGE_BUS_SERVICEBUSNAME
+    environmentName: environmentName
+    location: location
   }
 }
 
-output MANAGED_IDENTITY_CLIENT_ID string = !hybridEnvironment ? resources.outputs.MANAGED_IDENTITY_CLIENT_ID : ''
-output MANAGED_IDENTITY_NAME string = !hybridEnvironment ? resources.outputs.MANAGED_IDENTITY_NAME : ''
-output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = !hybridEnvironment ? resources.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_NAME : ''
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT : ''
-output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID : ''
-output AZURE_CONTAINER_REGISTRY_NAME string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_REGISTRY_NAME : ''
-output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_NAME : ''
-output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID : ''
-output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = !hybridEnvironment ? resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN : ''
+output MANAGED_IDENTITY_CLIENT_ID string = !hybridEnvironment ? remote.outputs.MANAGED_IDENTITY_CLIENT_ID : ''
+output MANAGED_IDENTITY_NAME string = !hybridEnvironment ? remote.outputs.MANAGED_IDENTITY_NAME : ''
+output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = !hybridEnvironment ? remote.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_NAME : ''
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT : ''
+output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID : ''
+output AZURE_CONTAINER_REGISTRY_NAME string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_REGISTRY_NAME : ''
+output AZURE_CONTAINER_APPS_ENVIRONMENT_NAME string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_NAME : ''
+output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID : ''
+output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = !hybridEnvironment ? remote.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN : ''
 
-output APP_CONFIG_APPCONFIGENDPOINT string = services.outputs.APP_CONFIG_APPCONFIGENDPOINT
-output APP_SECRETS_VAULTURI string = services.outputs.APP_SECRETS_VAULTURI
-output ASB_MESSAGING_SERVICEBUSENDPOINT string = services.outputs.MESSAGE_BUS_SERVICEBUSENDPOINT
+output APP_CONFIG_APPCONFIGENDPOINT string = hybridEnvironment ? hybrid.outputs.APP_CONFIG_APPCONFIGENDPOINT : remote.outputs.APP_CONFIG_APPCONFIGENDPOINT
+output APP_SECRETS_VAULTURI string = hybridEnvironment ? hybrid.outputs.APP_SECRETS_VAULTURI : remote.outputs.APP_SECRETS_VAULTURI
+output ASB_MESSAGING_SERVICEBUSENDPOINT string = hybridEnvironment ? hybrid.outputs.ASB_MESSAGING_SERVICEBUSENDPOINT : remote.outputs.ASB_MESSAGING_SERVICEBUSENDPOINT

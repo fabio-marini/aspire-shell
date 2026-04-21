@@ -68,44 +68,44 @@ Each web app uses a custom `DefaultAzureCredential` that:
 ### Infrastructure (Bicep)
 
 `infra/` is modular:
-- `main.bicep` — subscription-scoped entry point; conditionally deploys `resources.bicep` based on `hybridEnvironment` flag.
+- `main.bicep` — subscription-scoped entry point; delegates to `main-hybrid.bicep` or `main-remote.bicep` based on the `hybridEnvironment` flag.
+- `main-hybrid.bicep` — deploys shared services and assigns developer RBAC roles. Used when `hybridEnvironment = true`.
+- `main-remote.bicep` — deploys both shared services and cloud resources, and assigns Managed Identity RBAC roles. Used for full cloud deployments.
 - `services.bicep` — always-deployed shared services: Key Vault, App Config, Service Bus.
-- `resources.bicep` — Container Apps environment, ACR, Managed Identity (skipped for hybrid).
-- `app-roles.bicep` — assigns RBAC roles to both the developer (`principalId`) and the app's Managed Identity.
+- `resources.bicep` — Container Apps environment, ACR, Managed Identity (used by `main-remote.bicep` only).
+- `app-roles.bicep` — assigns RBAC roles for a given principal; called once by each sub-entrypoint.
 
 The `hybridEnvironment` Bicep parameter must be set manually in `.azure/<env>/.env` as `HYBRID_ENVIRONMENT="true"`.
 
 ## CI/CD Pipelines
 
-Three GitHub Actions workflows in `.github/workflows/`:
+Two GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | File | Trigger | What it does |
 |---|---|---|---|
-| CI | `aspire-shell-ci.yml` | Push/PR to `main` or `develop` | `dotnet restore` → `build` → `test` with XPlat coverage → upload to Codecov |
-| Landing Zone | `aspire-shell-lz.yml` | Manual (`workflow_dispatch`) | `azd provision` — provisions Azure infrastructure only |
-| CD | `aspire-shell-cd.yml` | Manual (`workflow_dispatch`) | `azd deploy` — deploys application code to already-provisioned infrastructure |
+| CI | `aspire-shell-ci.yml` | Push/PR to `main` or `develop` | `dotnet restore` → `build` → `test` with XPlat Code Coverage → generate coverage report via ReportGenerator → upload test results and coverage report as GitHub Artifacts |
+| CD | `aspire-shell-cd.yml` | Manual (`workflow_dispatch`) | `azd provision` then `azd deploy` — provisions infrastructure and deploys application code in one run |
 
-**Separation of concerns**: infrastructure provisioning (LZ) and application deployment (CD) are intentionally separate workflows.
+### Required GitHub repository variables (for CD)
 
-### Required GitHub repository variables (for LZ and CD)
-
-These must be set as **repository variables** (not secrets) before either workflow can run:
+These must be set as **repository variables** (not secrets) before either workflow can run. `AZURE_ENV_NAME` is supplied as a `workflow_dispatch` **input** at run time (not a repository variable):
 
 | Variable | Description |
 |---|---|
 | `AZURE_CLIENT_ID` | Client ID of the app registration used for OIDC login |
 | `AZURE_TENANT_ID` | Azure AD tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | Target subscription ID |
-| `AZURE_ENV_NAME` | `azd` environment name (must match an environment under `.azure/`) |
 | `AZURE_LOCATION` | Azure region (e.g., `eastus`) |
+
+`AZURE_ENV_NAME` is provided interactively when triggering the CD workflow via `workflow_dispatch`.
 
 Authentication uses **OIDC federated credentials** (no client secret stored). The app registration needs a federated credential for the GitHub repo. Run `azd pipeline config -e <env>` to set this up automatically.
 
 ## RBAC Role Assignments
 
-`infra/app-roles.bicep` is called **twice** by `main.bicep`:
-1. For the developer (`principalType: 'User'`, `principalId` from `AZURE_PRINCIPAL_ID`)
-2. For the app's Managed Identity (`principalType: 'ServicePrincipal'`, ID from `resources.bicep` output) — skipped in hybrid mode
+`infra/app-roles.bicep` is invoked once by each sub-entrypoint:
+1. `main-hybrid.bicep` calls it for the developer (`principalType: 'User'`, `principalId` from `AZURE_PRINCIPAL_ID`).
+2. `main-remote.bicep` calls it for the app's Managed Identity (`principalType: 'ServicePrincipal'`, ID from `resources.bicep` output).
 
 The following roles are assigned to both principals on each shared service:
 
@@ -116,8 +116,6 @@ The following roles are assigned to both principals on each shared service:
 | Service Bus | **Azure Service Bus Data Owner** | `090c5cfd-751d-490a-894a-3ce6f1109419` |
 
 > **Note**: The `Key Vault Secrets User` role (`4633458b...`) is commented out in `app-secrets-roles.module.bicep` in favour of the broader `Key Vault Secrets Officer` role. Do not switch back without updating both the developer and MI assignments.
-
-`AZURE_PRINCIPAL_ID` must be added manually to `.azure/<env>/.env` before running `azd provision` to receive developer role assignments. If omitted, `main.bicep` skips the `user-roles` module (`if (principalId != '')`).
 
 ## Key Conventions
 
